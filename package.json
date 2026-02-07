@@ -1,16 +1,28 @@
 {
   "name": "n8n-nodes-markmap",
-  "version": "0.1.0",
-  "description": "n8n community node that converts Markdown text into an interactive markmap mind-map HTML page.",
+  "version": "0.1.2",
+  "description": "n8n community node that converts Markdown text into an interactive Markmap mind-map HTML page.",
   "keywords": [
-    "n8n-community-node-package",
     "n8n",
+    "n8n-community-node",
+    "n8n-community-node-package",
     "markmap",
     "mindmap",
     "markdown"
   ],
   "license": "MIT",
+  "homepage": "https://github.com/zml-w/n8n-nodes-markmap",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zml-w/n8n-nodes-markmap.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zml-w/n8n-nodes-markmap/issues"
+  },
   "main": "dist/nodes/Markmap/Markmap.node.js",
+  "files": [
+    "dist/"
+  ],
   "scripts": {
     "build": "tsc && copyfiles -u 2 \"nodes/**/*.svg\" dist/nodes/Markmap/",
     "dev": "tsc --watch",
@@ -37,8 +49,5 @@
   },
   "peerDependencies": {
     "n8n-workflow": ">=1.0.0"
-  },
-  "files": [
-    "dist/"
-  ]
+  }
 }

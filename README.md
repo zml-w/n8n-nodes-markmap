@@ -36,6 +36,18 @@ Takes Markdown text as input and produces a fully self-contained HTML page with 
 | Pan | boolean | `true` | Enable panning on the mind-map |
 | Output Field | string | `html` | Name of the output JSON field containing the HTML |
 
+**Screenshot Options:**
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| Enable Screenshot | boolean | `false` | Whether to generate a screenshot of the mindmap using Puppeteer |
+| Chrome Executable Path | string | `C:\Program Files\Google\Chrome\Application\chrome.exe` | Path to the Chrome/Chromium executable for Puppeteer |
+| Screenshot Width | number | `1920` | Width of the screenshot in pixels |
+| Screenshot Height | number | `1080` | Height of the screenshot in pixels |
+| Wait Time (ms) | number | `2000` | Time to wait for the mindmap animation to complete before taking screenshot |
+| Full Page Screenshot | boolean | `false` | Whether to capture the full scrollable page or just the viewport |
+| Output Format | string | `binary` | How to output the screenshot: `binary` (as binary data) or `base64` (as base64 encoded string) |
+
 **Output:**
 
 The node adds a field (default: `html`) to each item containing the complete HTML page string. You can then:
@@ -45,10 +57,42 @@ The node adds a field (default: `html`) to each item containing the complete HTM
 - Return it as an HTTP response
 - Store it in a database
 
-## Example Workflow
+When screenshot is enabled, the node will also output:
+- **Binary mode**: A binary field named `screenshot` containing the PNG image
+- **Base64 mode**: JSON fields `screenshotBase64` and `screenshotMimeType` containing the base64-encoded image
 
+## Markdown Format Specification
+
+The node uses standard Markdown syntax to build the mind-map hierarchy:
+
+- `# Title` - Root node (level 1 heading), represents the main topic
+- `## Branch` - Second-level node (level 2 heading), represents main branches
+- `### Sub-branch` - Third-level node (level 3 heading), represents sub-branches
+- `- List item` - Leaf nodes (bullet points), represents end content
+
+**Example Structure:**
+```markdown
+# Project Plan (root)
+## Phase 1 (branch)
+### Task A (sub-branch)
+- Detail 1 (leaf)
+- Detail 2 (leaf)
+## Phase 2 (branch)
+- Summary (leaf)
+```
+
+The hierarchy is: `# Root` → `## Branch` → `### Sub-branch` → `- Leaf`
+
+## Example Workflows
+
+### Basic HTML Generation
 ```
 [Manual Trigger] -> [Set node with Markdown] -> [Markmap] -> [Write Binary File]
+```
+
+### With Screenshot
+```
+[Manual Trigger] -> [Set node with Markdown] -> [Markmap with Screenshot enabled] -> [Write Binary File for HTML] -> [Write Binary File for Screenshot]
 ```
 
 ## Compatibility
