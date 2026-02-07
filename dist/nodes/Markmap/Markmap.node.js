@@ -39,11 +39,40 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Markmap = void 0;
 const n8n_workflow_1 = require("n8n-workflow");
 const puppeteer_core_1 = __importDefault(require("puppeteer-core"));
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
+// Cache for library files
+let d3JsCache = null;
+let markmapViewJsCache = null;
 /**
- * Markmap HTML template – a self-contained page that loads d3 and markmap-view
- * from a CDN at runtime and renders the mind-map from an embedded JSON tree.
+ * Load library files from current directory
+ * These files are copied to dist/ during build
  */
-function buildHtml(rootJson, title, jsonOptionsJson, colorFreezeLevel) {
+function loadLocalLibraries() {
+    // Return cached values if available
+    if (d3JsCache && markmapViewJsCache) {
+        return { d3Js: d3JsCache, markmapViewJs: markmapViewJsCache };
+    }
+    try {
+        // Load d3 from current directory (works in both source and dist)
+        const d3Path = path.join(__dirname, 'd3.min.js');
+        const d3Js = fs.readFileSync(d3Path, 'utf-8');
+        // Load markmap-view from current directory
+        const markmapViewPath = path.join(__dirname, 'markmap-view.js');
+        const markmapViewJs = fs.readFileSync(markmapViewPath, 'utf-8');
+        // Cache the results
+        d3JsCache = d3Js;
+        markmapViewJsCache = markmapViewJs;
+        return { d3Js, markmapViewJs };
+    }
+    catch (error) {
+        throw new Error(`Failed to load local libraries: ${error.message}`);
+    }
+}
+/**
+ * Build HTML with CDN resources
+ */
+function buildHtmlWithCDN(rootJson, title, jsonOptionsJson, colorFreezeLevel) {
     return `<!doctype html>
 <html>
 <head>
@@ -71,6 +100,63 @@ html {
 <svg id="mindmap"></svg>
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script src="https://cdn.jsdelivr.net/npm/markmap-view@0.18"></script>
+<script>
+(function() {
+  var root = ${rootJson};
+  var jsonOptions = ${jsonOptionsJson};
+  var colorFreezeLevel = ${colorFreezeLevel};
+
+  var options = markmap.deriveOptions(jsonOptions);
+  if (colorFreezeLevel > 0) {
+    options.colorFreezeLevel = colorFreezeLevel;
+  }
+
+  window.mm = markmap.Markmap.create('svg#mindmap', options, root);
+
+  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.classList.add('markmap-dark');
+  }
+})();
+</script>
+</body>
+</html>`;
+}
+/**
+ * Build HTML with local embedded resources
+ */
+function buildHtmlWithLocal(rootJson, title, jsonOptionsJson, colorFreezeLevel) {
+    const { d3Js, markmapViewJs } = loadLocalLibraries();
+    return `<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>${escapeHtml(title)}</title>
+<style>
+* { margin: 0; padding: 0; }
+html {
+  font-family: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+#mindmap {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+.markmap-dark {
+  background: #27272a;
+  color: white;
+}
+</style>
+</head>
+<body>
+<svg id="mindmap"></svg>
+<script>
+${d3Js}
+</script>
+<script>
+${markmapViewJs}
+</script>
 <script>
 (function() {
   var root = ${rootJson};
@@ -223,7 +309,7 @@ The hierarchy is: # Root → ## Branch → ### Sub-branch → - Leaf`,
                     type: 'string',
                     default: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
                     required: true,
-                    description: 'Path to the Chrome/Chromium executable for Puppeteer. This parameter is automatically added when screenshot is enabled',
+                    description: 'Path to the Chrome/Chromium executable for Puppeteer. This parameter is automatically added when screenshot is enabled. If a corresponding environment variable is set, it will take precedence over this value.',
                     displayOptions: {
                         show: {
                             operation: ['markdownToHtml'],
@@ -306,6 +392,25 @@ The hierarchy is: # Root → ## Branch → ### Sub-branch → - Leaf`,
                     },
                     options: [
                         {
+                            displayName: 'Render Mode',
+                            name: 'renderMode',
+                            type: 'options',
+                            default: 'cdn',
+                            description: 'Choose how to load markmap libraries: CDN (requires internet) or Local (offline, embedded)',
+                            options: [
+                                {
+                                    name: 'CDN (Online)',
+                                    value: 'cdn',
+                                    description: 'Load libraries from CDN (requires internet connection)',
+                                },
+                                {
+                                    name: 'Local (Offline)',
+                                    value: 'local',
+                                    description: 'Use embedded local libraries (works offline)',
+                                },
+                            ],
+                        },
+                        {
                             displayName: 'Color Freeze Level',
                             name: 'colorFreezeLevel',
                             type: 'number',
@@ -374,6 +479,7 @@ The hierarchy is: # Root → ## Branch → ### Sub-branch → - Leaf`,
                     const enableScreenshot = this.getNodeParameter('enableScreenshot', i);
                     const outputField = options.outputField || 'html';
                     const colorFreezeLevel = options.colorFreezeLevel ?? 0;
+                    const renderMode = options.renderMode || 'cdn';
                     // 1. Transform Markdown -> tree
                     const transformer = new Transformer();
                     const { root, frontmatter } = transformer.transform(markdown);
@@ -393,10 +499,12 @@ The hierarchy is: # Root → ## Branch → ### Sub-branch → - Leaf`,
                     if (options.pan === false) {
                         jsonOptions.pan = false;
                     }
-                    // 3. Build self-contained HTML
+                    // 3. Build self-contained HTML based on render mode
                     const rootJson = JSON.stringify(root);
                     const jsonOptionsJson = JSON.stringify(jsonOptions);
-                    const html = buildHtml(rootJson, title, jsonOptionsJson, colorFreezeLevel);
+                    const html = renderMode === 'local'
+                        ? buildHtmlWithLocal(rootJson, title, jsonOptionsJson, colorFreezeLevel)
+                        : buildHtmlWithCDN(rootJson, title, jsonOptionsJson, colorFreezeLevel);
                     const result = {
                         json: {
                             ...items[i].json,
@@ -405,8 +513,10 @@ The hierarchy is: # Root → ## Branch → ### Sub-branch → - Leaf`,
                     };
                     // 4. Take screenshot if enabled
                     if (enableScreenshot) {
-                        // Chrome path is now a separate required parameter
-                        const chromePath = this.getNodeParameter('chromePath', i);
+                        // Get Chrome path from environment variable or node parameter
+                        const envChromePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+                        const paramChromePath = this.getNodeParameter('chromePath', i);
+                        const chromePath = envChromePath || paramChromePath;
                         const screenshotOptions = this.getNodeParameter('screenshotOptions', i, {});
                         const width = screenshotOptions.width || 1920;
                         const height = screenshotOptions.height || 1080;
