@@ -1,0 +1,44 @@
+{
+  "name": "n8n-nodes-markmap",
+  "version": "0.1.0",
+  "description": "n8n community node that converts Markdown text into an interactive markmap mind-map HTML page.",
+  "keywords": [
+    "n8n-community-node-package",
+    "n8n",
+    "markmap",
+    "mindmap",
+    "markdown"
+  ],
+  "license": "MIT",
+  "main": "dist/nodes/Markmap/Markmap.node.js",
+  "scripts": {
+    "build": "tsc && copyfiles -u 2 \"nodes/**/*.svg\" dist/nodes/Markmap/",
+    "dev": "tsc --watch",
+    "lint": "eslint . --ext .ts",
+    "prepublishOnly": "npm run build"
+  },
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "nodes": [
+      "dist/nodes/Markmap/Markmap.node.js"
+    ]
+  },
+  "dependencies": {
+    "markmap-common": "^0.18.3",
+    "markmap-lib": "^0.18.3",
+    "markmap-render": "^0.18.3",
+    "puppeteer-core": "^21.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "copyfiles": "^2.4.1",
+    "n8n-workflow": "^1.30.0",
+    "typescript": "^5.4.0"
+  },
+  "peerDependencies": {
+    "n8n-workflow": ">=1.0.0"
+  },
+  "files": [
+    "dist/"
+  ]
+}
