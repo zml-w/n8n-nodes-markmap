@@ -4,6 +4,8 @@ This is an [n8n](https://n8n.io) community node that converts **Markdown text** 
 
 [markmap](https://markmap.js.org/) is a library that visualizes Markdown documents as interactive mind maps.
 
+> **Note:** This node supports both CDN and Local rendering modes. By default, it uses CDN for faster loading. You can switch to Local mode for offline use.
+
 ## Installation
 
 Follow the [n8n community nodes installation guide](https://docs.n8n.io/integrations/community-nodes/installation/).
@@ -29,6 +31,7 @@ Takes Markdown text as input and produces a fully self-contained HTML page with 
 
 | Option | Type | Default | Description |
 |---|---|---|---|
+| Render Mode | string | `cdn` | Choose how to load libraries: `cdn` (requires internet) or `local` (offline, embedded) |
 | Color Freeze Level | number | `0` | Freeze branch colors at a specific depth |
 | Initial Expand Level | number | `-1` | Max node depth to expand on load (`-1` = all) |
 | Max Width | number | `0` | Max width of node content in px (`0` = unlimited) |
@@ -41,7 +44,7 @@ Takes Markdown text as input and produces a fully self-contained HTML page with 
 | Option | Type | Default | Description |
 |---|---|---|---|
 | Enable Screenshot | boolean | `false` | Whether to generate a screenshot of the mindmap using Puppeteer |
-| Chrome Executable Path | string | `C:\Program Files\Google\Chrome\Application\chrome.exe` | Path to the Chrome/Chromium executable for Puppeteer |
+| Chrome Executable Path | string | `C:\Program Files\Google\Chrome\Application\chrome.exe` | Path to the Chrome/Chromium executable for Puppeteer. Can also be set via `PUPPETEER_EXECUTABLE_PATH` environment variable (takes priority) |
 | Screenshot Width | number | `1920` | Width of the screenshot in pixels |
 | Screenshot Height | number | `1080` | Height of the screenshot in pixels |
 | Wait Time (ms) | number | `2000` | Time to wait for the mindmap animation to complete before taking screenshot |

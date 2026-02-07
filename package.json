@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-markmap",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "n8n community node that converts Markdown text into an interactive Markmap mind-map HTML page.",
   "keywords": [
     "n8n",
@@ -24,7 +24,7 @@
     "dist/"
   ],
   "scripts": {
-    "build": "tsc && copyfiles -u 2 \"nodes/**/*.svg\" dist/nodes/Markmap/",
+    "build": "tsc && copyfiles -u 2 \"nodes/**/*.svg\" \"nodes/**/*.js\" dist/nodes/Markmap/",
     "dev": "tsc --watch",
     "lint": "eslint . --ext .ts",
     "prepublishOnly": "npm run build"
