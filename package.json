@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "name": "n8n-nodes-markmap",
   "version": "0.1.6",
@@ -51,3 +52,58 @@
     "n8n-workflow": ">=1.0.0"
   }
 }
+=======
+{
+  "name": "n8n-nodes-markmap",
+  "version": "0.1.4",
+  "description": "n8n community node that converts Markdown text into an interactive Markmap mind-map HTML page.",
+  "keywords": [
+    "n8n",
+    "n8n-community-node",
+    "n8n-community-node-package",
+    "markmap",
+    "mindmap",
+    "markdown"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/zml-w/n8n-nodes-markmap",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zml-w/n8n-nodes-markmap.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zml-w/n8n-nodes-markmap/issues"
+  },
+  "main": "dist/nodes/Markmap/Markmap.node.js",
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "tsc && copyfiles -u 2 \"nodes/**/*.svg\" \"nodes/**/*.js\" dist/nodes/Markmap/",
+    "dev": "tsc --watch",
+    "lint": "eslint . --ext .ts",
+    "prepublishOnly": "npm run build"
+  },
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "nodes": [
+      "dist/nodes/Markmap/Markmap.node.js"
+    ]
+  },
+  "dependencies": {
+    "markmap-common": "^0.18.3",
+    "markmap-lib": "^0.18.3",
+    "markmap-render": "^0.18.3",
+    "puppeteer-core": "^21.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "copyfiles": "^2.4.1",
+    "n8n-workflow": "^1.30.0",
+    "typescript": "^5.4.0"
+  },
+  "peerDependencies": {
+    "n8n-workflow": ">=1.0.0"
+  }
+}
+>>>>>>> 09a7801e3fb630b43d48993d9315812feff108dd
